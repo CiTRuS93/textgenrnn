@@ -1,7 +1,7 @@
 import numpy as np
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras.preprocessing.text import Tokenizer
-
+from transformers import BertTokenizer,BertConfig
 from .utils import textgenrnn_encode_cat
 
 
@@ -12,12 +12,27 @@ def generate_sequences_from_texts(texts, indices_list,
     is_single = textgenrnn.config['single_text']
     max_length = textgenrnn.config['max_length']
     meta_token = textgenrnn.META_TOKEN
-
+    
     if is_words:
-        new_tokenizer = Tokenizer(filters='', char_level=True)
-        new_tokenizer.word_index = textgenrnn.vocab
+#         new_tokenizer = Tokenizer(filters='', char_level=True)
+#         new_tokenizer.word_index = textgenrnn.vocab
+          max_len = 384
+          configuration = BertConfig()
+          slow_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+          save_path = "bert_base_uncased/"
+          if not os.path.exists(save_path):
+              os.makedirs(save_path)
+          slow_tokenizer.save_pretrained(save_path)
+          new_tokenizer = slow_tokenizer
     else:
-        new_tokenizer = textgenrnn.tokenizer
+         max_len = 384
+          configuration = BertConfig()
+          slow_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+          save_path = "bert_base_uncased/"
+          if not os.path.exists(save_path):
+              os.makedirs(save_path)
+          slow_tokenizer.save_pretrained(save_path)
+          new_tokenizer = slow_tokenizer
 
     while True:
         np.random.shuffle(indices_list)
@@ -72,7 +87,7 @@ def generate_sequences_from_texts(texts, indices_list,
 
 
 def process_sequence(X, textgenrnn, new_tokenizer):
-    X = new_tokenizer.texts_to_sequences(X)
+    X = new_tokenizer.encode(X)
     X = sequence.pad_sequences(
         X, maxlen=textgenrnn.config['max_length'])
 
